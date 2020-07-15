@@ -207,28 +207,28 @@ def play_game(player_tile: str, computer_tile: str) -> List[List[str]]:
             return board
         elif turn == 'player':
             if player_valid_moves:
-                if show_hints:
-                    valid_moves_board = get_board_with_valid_moves(board,player_tile)
-                    draw_board(valid_moves_board)
-                else:
-                    draw_board(board)
-                print_score(board,player_tile,computer_tile)
-                move = get_player_move(board,player_tile)
-                if move == 'quit':
-                    print('Thanks for playing!')
-                    sys.exit()
-                elif move == 'hints':
-                    show_hints = not show_hints
-                    continue
-                else:
-                    make_move(board,player_tile,move[0],move[1])
+                #if show_hints:
+                    #valid_moves_board = get_board_with_valid_moves(board,player_tile)
+                    #draw_board(valid_moves_board)
+                #else:
+                    #draw_board(board)
+                #print_score(board,player_tile,computer_tile)
+                move = get_computer_move(board,player_tile)
+                #if move == 'quit':
+                    #print('Thanks for playing!')
+                    #sys.exit()
+                #elif move == 'hints':
+                    #show_hints = not show_hints
+                    #continue
+                #else:
+                make_move(board,player_tile,move[0],move[1])
             # 不论这次玩家走没走，都要把出牌权交给电脑
             turn = 'computer'
         elif turn == 'computer':
             if computer_valid_moves:
-                draw_board(board)
-                print_score(board,player_tile,computer_tile)
-                input('Press Enter to see the computer\'s move.')
+                #draw_board(board)
+                #print_score(board,player_tile,computer_tile)
+                #input('Press Enter to see the computer\'s move.')
                 move = get_computer_move(board,computer_tile)
                 make_move(board,computer_tile,move[0],move[1])
             # 不论这次电脑走没走，都要把出牌权交给玩家
@@ -238,7 +238,7 @@ def play_game(player_tile: str, computer_tile: str) -> List[List[str]]:
 if __name__ == '__main__':
     print('Welcome to Reversegam!')
 
-    player_tile, computer_tile = enter_player_tile()
+    player_tile, computer_tile = ['X','O']#enter_player_tile()
 
     while True:
         final_board = play_game(player_tile,computer_tile)

@@ -157,9 +157,9 @@ def get_player_move(board, player_tile) -> Optional[Tuple[int,int]]:
             print('For example, 81 will move on the top-right corner.')
     return x,y
 
-def get_computer_move(board: List[List[str]], computer_tile) -> Tuple[int,int]:
-    '''获取电脑要下棋的格子坐标'''
-    possible_moves: List[Tuple[int,int]] = get_valid_moves(board,computer_tile)
+def get_corner_best_move(board: List[List[str]], tile: str) -> Tuple[int,int]:
+    '''优先抢角落算法'''
+    possible_moves: List[Tuple[int,int]] = get_valid_moves(board,tile)
     random.shuffle(possible_moves)
 
     # 尽量占个角
@@ -172,13 +172,55 @@ def get_computer_move(board: List[List[str]], computer_tile) -> Tuple[int,int]:
     for x,y in possible_moves:
         # 在棋盘副本上试着走，然后看看得分是否更高了
         board_copy = get_board_copy(board)
-        make_move(board_copy,computer_tile,x,y)
-        score = get_score_of_board(board_copy)[computer_tile]
+        make_move(board_copy,tile,x,y)
+        score = get_score_of_board(board_copy)[tile]
         if score > best_score:
             best_move = (x,y)
             best_score = score
     return best_move
-        
+
+def get_worst_move(board: List[List[str]], tile: str) -> Tuple[int,int]:
+    '''优先抢低分算法'''
+    possible_moves: List[Tuple[int,int]] = get_valid_moves(board,tile)
+    random.shuffle(possible_moves)
+
+    worst_score = 64
+    for x,y in possible_moves:
+        board_copy = get_board_copy(board)
+        make_move(board_copy,tile,x,y)
+        score: int = get_score_of_board(board_copy)[tile]
+        if score < worst_score:
+            worst_score = score
+            worst_move = (x,y)
+    return worst_move
+
+def get_random_move(board: List[List[str]], tile: str) -> Tuple[int,int]:
+    '''随机算法'''
+    possible_moves: List[Tuple[int,int]] = get_valid_moves(board,tile)
+    return random.choice(possible_moves)
+
+def is_on_side(x,y) -> bool:
+    '''判断一个坐标是否在棋盘边上'''
+    return x==0 or x==WIDTH-1 or y==0 or y==HEIGHT-1
+
+def get_corner_side_best_move(board: List[List[str]], tile: str) -> Tuple[int,int]:
+    '''按照角、边、最高分的顺序选择下棋的坐标'''
+    possible_moves = get_valid_moves(board,tile)
+    random.shuffle(possible_moves)
+    
+    # 优先找角
+    for x,y in possible_moves:
+        if is_on_corner(x,y):
+            return x,y
+    
+    # 其次找边
+    for x,y in possible_moves:
+        if is_on_side(x,y):
+            return x,y
+    
+    # 不行就按原计划找最高分
+    return get_corner_best_move(board,tile)
+
 def print_score(board: List[List[str]],
                 player_tile: str,
                 computer_tile: str) -> None:
@@ -190,7 +232,7 @@ def play_game(player_tile: str, computer_tile: str) -> List[List[str]]:
     '''根据用户的输入下棋，结束的时候返回最终的棋盘'''
     show_hints: bool = False
     turn: str = who_goes_first()
-    print(f'The {turn} will go first.')
+    #print(f'The {turn} will go first.')
 
     # 初始化棋盘
     board: List[List[str]] = get_new_board()
@@ -207,57 +249,65 @@ def play_game(player_tile: str, computer_tile: str) -> List[List[str]]:
             return board
         elif turn == 'player':
             if player_valid_moves:
-                if show_hints:
-                    valid_moves_board = get_board_with_valid_moves(board,player_tile)
-                    draw_board(valid_moves_board)
-                else:
-                    draw_board(board)
-                print_score(board,player_tile,computer_tile)
-                move = get_player_move(board,player_tile)
-                if move == 'quit':
-                    print('Thanks for playing!')
-                    sys.exit()
-                elif move == 'hints':
-                    show_hints = not show_hints
-                    continue
-                else:
-                    make_move(board,player_tile,move[0],move[1])
+                #if show_hints:
+                    #valid_moves_board = get_board_with_valid_moves(board,player_tile)
+                    #draw_board(valid_moves_board)
+                #else:
+                    #draw_board(board)
+                #print_score(board,player_tile,computer_tile)
+                move = get_corner_best_move(board,player_tile)
+                #if move == 'quit':
+                    #print('Thanks for playing!')
+                    #sys.exit()
+                #elif move == 'hints':
+                    #show_hints = not show_hints
+                    #continue
+                #else:
+                make_move(board,player_tile,move[0],move[1])
             # 不论这次玩家走没走，都要把出牌权交给电脑
             turn = 'computer'
         elif turn == 'computer':
             if computer_valid_moves:
-                draw_board(board)
-                print_score(board,player_tile,computer_tile)
-                input('Press Enter to see the computer\'s move.')
-                move = get_computer_move(board,computer_tile)
+                #draw_board(board)
+                #print_score(board,player_tile,computer_tile)
+                #input('Press Enter to see the computer\'s move.')
+                move = get_corner_side_best_move(board,computer_tile)
                 make_move(board,computer_tile,move[0],move[1])
             # 不论这次电脑走没走，都要把出牌权交给玩家
             turn = 'player'
         
 
 if __name__ == '__main__':
+    # 运行250次游戏，统计结果
+    NUM_GAMES = 250
+    x_wins = o_wins = ties = 0
     print('Welcome to Reversegam!')
 
-    player_tile, computer_tile = enter_player_tile()
+    player_tile, computer_tile = ['X','O']#enter_player_tile()
 
-    while True:
+    for i in range(NUM_GAMES): #while True:
         final_board = play_game(player_tile,computer_tile)
         # 展示最终的棋盘
-        draw_board(final_board)
+        #draw_board(final_board)
         # 获取最终的得分
         scores: Tuple[int,int] = get_score_of_board(final_board)
-        print(f'X scored {scores["X"]} points. O scored {scores["O"]} points.')
+        print(f'#{i+1}: X scored {scores["X"]} points. O scored {scores["O"]} points.')
         if scores[player_tile] > scores[computer_tile]:
-            print(f'You beat the computer by {scores[player_tile]-scores[computer_tile]} points! Congratulations!')
+            #print(f'You beat the computer by {scores[player_tile]-scores[computer_tile]} points! Congratulations!')
+            x_wins += 1
         elif scores[player_tile] < scores[computer_tile]:
-            print(f'You lost. The computer beat you by {scores[computer_tile]-scores[player_tile]} points.')
+            #print(f'You lost. The computer beat you by {scores[computer_tile]-scores[player_tile]} points.')
+            o_wins += 1
         else:
-            print('The game was a tie!')
+            #print('The game was a tie!')
+            ties += 1
 
-        if not input('Do you want to play again?(yes or no)>>>').lower().startswith('y'):
-            break  
+        #if not input('Do you want to play again?(yes or no)>>>').lower().startswith('y'):
+            #break  
 
-
+print(f'X wins: {x_wins} ({round(x_wins/NUM_GAMES*100,1)}%)')
+print(f'O wins: {o_wins} ({round(o_wins/NUM_GAMES*100,1)}%)')
+print(f'Ties: {ties} ({round(ties/NUM_GAMES*100,1)}%)')
 
 
 
