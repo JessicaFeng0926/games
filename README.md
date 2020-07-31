@@ -1,5 +1,7 @@
 # games
-Invent Your Own Computer Games with Python里的小游戏项目
+一些使用Python写的小游戏项目，主要来源于下面两本书：
+- Invent Your Own Computer Games with Python
+- 父与子的编程之旅：与小卡特一起学Python
 
 原书中的代码不够好，原因如下：
 1. 为了照顾初学者水平，故意使用了一些冗长的代码
